@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="rus">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{.title}}</title>
+    <link rel="stylesheet" href="/css/card_detailed.css" />
+</head>
+<body>
+<div class="space">
+    <div class="header">
+        <button class="home-button" onclick="window.location.href = 'http://localhost:8080/home';"></button>
+        <p>EVOLUTION<p>
+    </div>
+    <div class="container">
+        <div class="card">
+            <div class="card-image-container">
+                <img src="{{.card_data.ImageUrl}}" class="card-image">
+            </div>
+            <div class="card-text">
+                <p class="title-in-card">{{.card_data.TitleRu}}. {{.card_data.Description}}</p>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

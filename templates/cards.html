@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="rus">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{.title}}</title>
+    <link rel="stylesheet" href="/css/cards.css" />
+  </head>
+  <body>
+    <div class="space">
+        <div class="header">
+          <button class="home-button" onclick="window.location.href = 'http://localhost:8080/home';"></button>
+          <p>EVOLUTION<p>
+        </div>
+        <div class="navigation_line">
+          <form action="/home" method="get" class="search_field_class">
+            <div class="search-container">
+              <input class="search_field" type="search" name="CardItem" id="site_search" placeholder="Поиск..." value="{{.searchQuery}}">
+              <button class="search-button" type="submit">
+                <img src="http://127.0.0.1:9000/test/search.png" alt="Search" />
+              </button>
+            </div>
+          </form>
+          <button class="move_card" onclick="window.location.href = 'http://localhost:8080/move/{{.cart_ID}}';">
+            <span class="card-count">{{.card_count}}</span>
+          </button>
+        </div>
+        <div class="container">
+            {{range .filteredCards}}
+                <div class="card">
+                  <div class="info">
+
+                    <p class="title-en">{{.TitleEn}}</p>
+                  </div>
+                  <p class="title-ru">{{.TitleRu}}</p>
+                  <img src="{{.ImageUrl}}" class="image">
+                  <p class="short-description">{{.Description}}</p>
+                  <a href="http://localhost:8080/card_detailed/{{.ID}}" class="card-button">Подробнее</a>
+                </div>
+            {{end}}
+        </div>
+    </div>
+  </body>
+</html>
