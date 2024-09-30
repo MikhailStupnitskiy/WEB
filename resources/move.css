@@ -105,11 +105,18 @@ body {
     color: #054D1A;
 }
 
+.multiplier-info{
+    display: flex;
+    justify-content: flex-start;
+    align-items: baseline;
+}
+
 .title-ru {
     font-family: 'Century Gothic';
     font-size: 32px;
     font-weight: bold;
     color: #054D1A;
+    margin-right: 10px; /* Добавим отступ между title-ru и multiplier */
 }
 
 .description {
@@ -122,10 +129,12 @@ body {
 
 .multiplier {
     font-family: 'Changa';
-    font-size: 48px;
+    font-size: 30px;
     font-weight: bold;
     color: #DF0023;
-    margin-top: 20px;
+    text-align: start;
+    height: 20px;
+    line-height: 1; /* Убираем лишние отступы внутри текста */
 }
 
 .move-button {
@@ -144,7 +153,6 @@ body {
 
 .feed-selection {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     padding: 20px;
     font-family: 'Century Gothic', sans-serif;
@@ -168,13 +176,26 @@ body {
     cursor: pointer;
 }
 
+.game-dropdown {
+    padding: 10px;
+    width: 250px;
+    font-family: 'Century Gothic', sans-serif;
+    font-size: 20px;
+    border-radius: 10px;
+    border: 2px solid #054D1A;
+    background-color: #F1F6E7;
+    color: #054D1A;
+    cursor: pointer;
+    margin-left: 15px;
+}
+
 .food-dropdown option {
     background-color: #F1F6E7;
     color: #054D1A;
 }
 
 .food_info{
-    margin-left: 900px;
+    margin-left: 550px;
     font-family: "Century Gothic";
     font-weight: bold;
     color: #F1F6E7;

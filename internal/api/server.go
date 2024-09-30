@@ -112,6 +112,11 @@ func StartServer() {
 			{Value: "3", Label: "Игрок 3"},
 			{Value: "4", Label: "Игрок 4"},
 		}
+
+		stage := []Option{
+			{Value: "1", Label: "Создание"},
+			{Value: "2", Label: "Кормление"},
+		}
 		id := c.Param("id")
 
 		c.HTML(http.StatusOK, "move.html", gin.H{
@@ -119,6 +124,7 @@ func StartServer() {
 			"cards_data": MoveFunc(),
 			"move_id":    id,
 			"options":    options,
+			"stage":      stage,
 		})
 	})
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
