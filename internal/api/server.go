@@ -18,10 +18,17 @@ type Card struct {
 	Description string
 }
 
-type Move struct {
+type Move_M2M struct {
 	ID          int
 	CardElement []Card
-	Food        []int
+	Food        int
+}
+
+type Move struct {
+	ID     int
+	Player string
+	Stage  string
+	Info   Move_M2M
 }
 
 type Option struct {
@@ -31,7 +38,7 @@ type Option struct {
 
 func MoveFunc() []Move {
 	MoveArr := []Move{
-		{ID: 1, CardElement: CardFunc(), Food: []int{1, 1, 1, 1, 1}},
+		{ID: 1, Player: "Игрок 1", Stage: "Кормление", Info: Move_M2M{1, CardFunc(), 1}},
 	}
 	return MoveArr
 }
