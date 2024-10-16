@@ -3,11 +3,14 @@ package main
 import (
 	"log"
 
-	"SSR/internal/api"
+	"Evolution/internal/api"
 )
 
 func main() {
-	log.Println("Application start!")
-	api.StartServer()
-	log.Println("Application terminated!")
+	app, err := api.New()
+	if err != nil {
+		log.Println("app can not be created", err)
+		return
+	}
+	app.Run()
 }

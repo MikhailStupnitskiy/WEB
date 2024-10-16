@@ -1,12 +1,15 @@
 package api
 
 import (
+	"Evolution/internal/app/config"
+	"Evolution/internal/app/ds"
+	"Evolution/internal/app/dsn"
+	"Evolution/internal/app/repository"
+
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
-
-	"github.com/gin-gonic/gin"
 )
 
 type Card struct {
@@ -63,10 +66,17 @@ func CardFunc() []Card {
 	return CardsInfo
 }
 
-func StartServer() {
+type Application struct {
+	repo   *repository.Repository
+	config *config.Config
+}
+
+func (a *Application) Run() {
 	log.Println("Server start up")
 
 	r := gin.Default()
+
+	var err error
 
 	r.Static("/css", "./resources")
 
@@ -74,17 +84,41 @@ func StartServer() {
 
 	r.GET("/home", func(c *gin.Context) {
 		cardsquery := c.Query("CardItem")
-		cards := CardFunc()
 
-		var filteredCards []Card
-		for _, card := range cards {
-			if strings.Contains(strings.ToLower(card.TitleRu), strings.ToLower(cardsquery)) || strings.Contains(strings.ToLower(card.TitleEn), strings.ToLower(cardsquery)) {
-				filteredCards = append(filteredCards, card)
+		var filteredCards []ds.Cards
+
+		if cardsquery == "" {
+			filteredCards, err = a.repo.GetAllCards()
+			if err != nil {
+				log.Println("unable to get all cards")
+				c.Error(err)
+				return
+			}
+		} else {
+			filteredCards, err = a.repo.GetCardByInfo(cardsquery)
+			if err != nil {
+				log.Println("unable to get cards by info")
+				filteredCards = []ds.Cards{}
 			}
 		}
 
-		if len(filteredCards) == 0 {
-			filteredCards = cards
+		var move_len int
+		var move_ID int
+		curr_move, err := a.repo.GetCurrMove()
+		if err != nil {
+			log.Println("unable to get current move")
+		}
+		if len(curr_move) == 0 {
+			move_len = 0
+			move_ID = 0
+
+		} else {
+			cards_in_req, err := a.repo.GetCardsIDsByMoveID(curr_move[0].ID)
+			if err != nil {
+				log.Println("unable to get cards ids by move")
+			}
+			move_len = len(cards_in_req)
+			move_ID = curr_move[0].ID
 		}
 
 		c.HTML(http.StatusOK, "cards.html", gin.H{
@@ -92,23 +126,63 @@ func StartServer() {
 			"cards_data":    CardFunc(),
 			"filteredCards": filteredCards,
 			"searchQuery":   cardsquery,
-			"cart_ID":       MoveFunc()[0].ID,
-			"card_count":    len(CardFunc()),
+			"move_ID":       move_ID,
+			"card_count":    move_len,
 		})
+	})
+
+	r.POST("/home", func(c *gin.Context) {
+
+		id := c.PostForm("add")
+		card_ID, err := strconv.Atoi(id)
+
+		if err != nil { // если не получилось
+			log.Printf("cant transform ind", err)
+			c.Error(err)
+			c.String(http.StatusBadRequest, "Invalid ID")
+			return
+		}
+
+		move_wrk, err := a.repo.GetCurrMove()
+		var move_ID int
+		if len(move_wrk) == 0 {
+			new_move, err := a.repo.CreateMove()
+			if err != nil {
+				log.Println("unable to create move")
+			}
+			move_ID = new_move[0].ID
+		} else {
+			move_ID = move_wrk[0].ID
+		}
+
+		a.repo.AddToMove(move_ID, card_ID)
+
+		c.Redirect(301, "/home")
+
 	})
 
 	r.GET("/card_detailed/:id", func(c *gin.Context) {
 		id := c.Param("id") // Получаем ID из URL
 		index, err := strconv.Atoi(id)
 
-		if err != nil || index < 0 || index > len(CardFunc()) {
+		if err != nil { // если не получилось
+			log.Printf("cant get card by id %v", err)
+			c.Error(err)
+			c.String(http.StatusBadRequest, "Invalid ID")
+			return
+		}
+
+		card, err := a.repo.GetCardByID(index)
+		if err != nil { // если не получилось
+			log.Printf("cant get product by id %v", err)
+			c.Error(err)
 			c.String(http.StatusBadRequest, "Invalid ID")
 			return
 		}
 
 		c.HTML(http.StatusOK, "card_detailed.html", gin.H{
 			"title":     "Информация о карте",
-			"card_data": CardFunc()[index-1],
+			"card_data": card,
 		})
 	})
 
@@ -124,17 +198,82 @@ func StartServer() {
 			{Value: "1", Label: "Создание"},
 			{Value: "2", Label: "Кормление"},
 		}
+
 		id := c.Param("id")
+		index, err := strconv.Atoi(id)
+		if err != nil { // если не получилось
+			log.Printf("cant get move by id %v", err)
+			c.String(http.StatusBadRequest, "Invalid ID")
+			return
+		}
+
+		move_status, err := a.repo.GetMoveStatusByID(index)
+		if err != nil {
+			log.Printf("cant get move by id %v", err)
+		}
+		if move_status == 3 {
+			c.Redirect(301, "/home")
+		}
+
+		CardsIDs, err := a.repo.GetCardsIDsByMoveID(index)
+		if err != nil {
+			log.Println("unable to get cardsIDsByMoveID")
+			c.Error(err)
+			return
+		}
+
+		CardsInMove := []ds.Cards{}
+		for _, v := range CardsIDs {
+			card_temp, err := a.repo.GetCardsByID(v.CardID)
+			if err != nil {
+				c.Error(err)
+				return
+			}
+			CardsInMove = append(CardsInMove, card_temp[0])
+			log.Println(len(CardsInMove))
+		}
 
 		c.HTML(http.StatusOK, "move.html", gin.H{
 			"title":      "Заявка на ход",
-			"cards_data": MoveFunc(),
-			"move_id":    id,
+			"cards_data": CardsInMove,
+			"move_id":    index,
 			"options":    options,
 			"stage":      stage,
 		})
 	})
+
+	r.POST("/move/:id", func(c *gin.Context) {
+
+		id := c.Param("id")
+		index, err := strconv.Atoi(id)
+		if err != nil { // если не получилось
+			log.Printf("cant get cart by id %v", err)
+			c.Error(err)
+			c.String(http.StatusBadRequest, "Invalid ID")
+			return
+		}
+		a.repo.DeleteMove(index)
+		c.Redirect(301, "/home")
+
+	})
+
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 
 	log.Println("Server down")
+}
+
+func New() (*Application, error) {
+	var err error
+	app := Application{}
+	app.config, err = config.NewConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	app.repo, err = repository.New(dsn.FromEnv())
+	if err != nil {
+		return nil, err
+	}
+
+	return &app, nil
 }

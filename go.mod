@@ -1,4 +1,4 @@
-module SSR
+module Evolution
 
 go 1.23.1
 

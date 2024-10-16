@@ -22,7 +22,9 @@
               </button>
             </div>
           </form>
-          <button class="move_card" onclick="window.location.href = 'http://localhost:8080/move/{{.cart_ID}}';">
+          <button class="move_card"
+                  onclick="window.location.href = 'http://localhost:8080/move/{{.move_ID}}';"
+                  {{if eq .card_count 0}} disabled {{end}}>
             <span class="card-count">{{.card_count}}</span>
           </button>
         </div>
@@ -37,6 +39,10 @@
                   <img src="{{.ImageUrl}}" class="image">
                   <p class="short-description">{{.Description}}</p>
                   <a href="http://localhost:8080/card_detailed/{{.ID}}" class="card-button">Подробнее</a>
+                    <form action="/home" method="post">
+                        <input type="hidden" name="add" value="{{.ID}}">
+                        <button class="card-button">Сыграть</button>
+                    </form>
                 </div>
             {{end}}
         </div>

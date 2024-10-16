@@ -234,6 +234,7 @@ input[type="search"]::-webkit-search-results-decoration { display: none; }
     display: block; /* Блоковый элемент, чтобы применилось margin */
     margin: 0 auto;
     color: #054D1A;
+    /*margin-top: 5px;*/
 }
 
 
