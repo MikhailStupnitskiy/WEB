@@ -64,6 +64,18 @@ func (r *Repository) GetCardsIDsByMoveID(moveID int) ([]ds.MoveCards, error) {
 	return CardsIDs, nil
 }
 
+func (r *Repository) GetFoodByCardID(moveID int, cardID int) (int, error) {
+	var CardsIDs ds.MoveCards
+
+	err := r.db.Where("move_cards.move_id = ? and move_cards.card_id = ?", moveID, cardID).Find(&CardsIDs).Error
+
+	if err != nil {
+		return 0, err
+	}
+
+	return CardsIDs.Food, nil
+}
+
 func (r *Repository) CreateMove() ([]ds.Moves, error) {
 	newMove := ds.Moves{
 		Status:      0,
@@ -72,6 +84,8 @@ func (r *Repository) CreateMove() ([]ds.Moves, error) {
 		DateFinish:  time.Now(),
 		CreatorID:   1,
 		ModeratorID: 2,
+		Stage:       "Кормление",
+		Player:      "Игрок 1",
 	}
 	err := r.db.Create(&newMove).Error
 	if err != nil {

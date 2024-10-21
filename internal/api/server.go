@@ -39,6 +39,11 @@ type Option struct {
 	Label string
 }
 
+type InfoForMove struct {
+	Card ds.Cards
+	Food int
+}
+
 func MoveFunc() []Move {
 	MoveArr := []Move{
 		{ID: 1, Player: "Игрок 1", Stage: "Кормление", Info: Move_M2M{1, CardFunc(), 1}},
@@ -222,14 +227,19 @@ func (a *Application) Run() {
 			return
 		}
 
-		CardsInMove := []ds.Cards{}
+		//CardsInMove := []ds.Cards{}
+		CardsInMove := []InfoForMove{}
+		var curr_card InfoForMove
 		for _, v := range CardsIDs {
 			card_temp, err := a.repo.GetCardsByID(v.CardID)
 			if err != nil {
 				c.Error(err)
 				return
 			}
-			CardsInMove = append(CardsInMove, card_temp[0])
+			food, err := a.repo.GetFoodByCardID(index, v.CardID)
+			curr_card.Card = card_temp[0]
+			curr_card.Food = food
+			CardsInMove = append(CardsInMove, curr_card)
 			log.Println(len(CardsInMove))
 		}
 

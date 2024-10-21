@@ -36,16 +36,16 @@
     </div>
     {{range .cards_data}}
       <div class="card-detailed">
-        <img src="{{.ImageUrl}}" class="card-image" alt="Card Image">
+        <img src="{{.Card.ImageUrl}}" class="card-image" alt="Card Image">
         <div class="card-info">
-          <h1 class="title-en">{{.TitleEn}}</h1>
+          <h1 class="title-en">{{.Card.TitleEn}}</h1>
           <div class="multiplier-info">
-            <h2 class="title-ru">{{.TitleRu}}</h2>
-            <h3 class="multiplier">{{.Multiplier}}</h3>
+            <h2 class="title-ru">{{.Card.TitleRu}}</h2>
+            <h3 class="multiplier">{{.Card.Multiplier}}</h3>
           </div>
-          <p class="description">{{.Description}}</p>
+          <p class="description">{{.Card.Description}}</p>
         </div>
-        <div class="circle-number">2</div>
+        <div class="circle-number">{{.Food}}</div>
       </div>
     {{end}}
   </div>
