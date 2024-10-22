@@ -16,10 +16,12 @@
         <div class="navigation_line">
           <form action="/home" method="get" class="search_field_class">
             <div class="search-container">
-              <input class="search_field" type="search" name="CardItem" id="site_search" placeholder="Поиск..." value="{{.searchQuery}}">
-              <button class="search-button" type="submit">
-                <img src="http://127.0.0.1:9000/test/search.png" alt="Search" />
-              </button>
+                <form action="/home" method="get" class="search_field_class">
+                    <input class="search_field" type="search" name="CardItem" id="site_search" placeholder="Поиск..." value="{{.searchQuery}}">
+                    <button class="search-button" type="submit">
+                        <img src="http://127.0.0.1:9000/test/search.png" alt="Search" />
+                    </button>
+                </form>
             </div>
           </form>
           <button class="move_card"
