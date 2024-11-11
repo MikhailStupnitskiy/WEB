@@ -7,6 +7,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log"
+	"math/rand"
 	"time"
 )
 
@@ -308,6 +309,7 @@ func (r *Repository) FinishMove(id string, status int) error {
 	}
 	mod_id := 2
 	move.Status = status
+	move.Cube = rand.Intn(14) + 1
 	move.DateFinish = time.Now()
 	move.ModeratorID = &mod_id
 	if err := r.db.Save(&move).Error; err != nil {

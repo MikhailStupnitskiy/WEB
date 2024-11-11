@@ -1,7 +1,6 @@
 package api
 
 import (
-	"Evolution/internal/app/ds"
 	"Evolution/internal/app/schemas"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
@@ -21,6 +20,10 @@ func (a *Application) GetAllMovesWithParams(c *gin.Context) {
 	}
 	if request.ToDate.IsZero() {
 		request.ToDate = time.Now()
+	}
+	if request.Status == 3 {
+		c.JSON(http.StatusNotFound, "Moves deleted")
+		return
 	}
 	moves, err := a.repo.GetAllMovesWithFilters(request.Status, request.HavingStatus)
 	if err != nil {
@@ -50,7 +53,9 @@ func (a *Application) GetMove(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	cards := make([]ds.Cards, 0, len(card_ids_in_move))
+
+	CardsInMove := []schemas.InfoForMove{}
+	var curr_card schemas.InfoForMove
 	for _, v := range card_ids_in_move {
 		v_string := strconv.Itoa(v)
 		card_to_append, err := a.repo.GetCardByID(v_string)
@@ -58,9 +63,27 @@ func (a *Application) GetMove(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		cards = append(cards, card_to_append)
+		food, err := a.repo.GetFoodByCardID(id_int, v)
+		curr_card.Card = card_to_append
+		curr_card.Food = food
+		CardsInMove = append(CardsInMove, curr_card)
+		log.Println(len(CardsInMove))
 	}
-	response := schemas.GetMoveResponse{Move: move, Count: len(card_ids_in_move), MoveCards: cards}
+	result := map[string]interface{}{
+		"ID":           move.ID, // Строка
+		"Status":       move.Status,
+		"DateCreate":   move.DateCreate,
+		"DateUpdate":   move.DateUpdate,
+		"DateFinish":   move.DateFinish,
+		"CreatorID":    move.CreatorID,
+		"ModeratorID":  move.ModeratorID,
+		"CreatorLogin": move.Creator.Login,
+		"Moderator":    move.Moderator,
+		"Player":       move.Player,
+		"Stage":        move.Stage,
+		"Cube":         move.Cube,
+	}
+	response := schemas.GetMoveResponse{Move: result, MoveCards: CardsInMove}
 	c.JSON(http.StatusOK, response)
 }
 

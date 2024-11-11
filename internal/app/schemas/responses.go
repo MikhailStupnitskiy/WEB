@@ -4,6 +4,11 @@ import (
 	"Evolution/internal/app/ds"
 )
 
+type InfoForMove struct {
+	Card ds.Cards `json:"card"`
+	Food int      `json:"food"`
+}
+
 type GetAllCardsResponse struct {
 	ID    int        `json:"move_ID"`
 	Count int        `json:"count"`
@@ -29,9 +34,8 @@ type GetAllMovesResponse struct {
 }
 
 type GetMoveResponse struct {
-	Move      ds.Moves   `json:"moves"`
-	Count     int        `json:"count"`
-	MoveCards []ds.Cards `json:"move_cards"`
+	Move      map[string]interface{} `json:"moves"`
+	MoveCards []InfoForMove          `json:"move_cards"`
 }
 
 type DeleteCardFromMoveResponse struct{}

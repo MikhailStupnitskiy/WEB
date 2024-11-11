@@ -14,4 +14,5 @@ type Moves struct {
 	Moderator   Users     `gorm:"foreignKey:ModeratorID"`
 	Player      string    `json:"player"`
 	Stage       string    `json:"stage"`
+	Cube        int       `json:"cube"`
 }

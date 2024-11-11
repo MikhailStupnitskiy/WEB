@@ -33,8 +33,6 @@ type ChangePicRequest struct {
 	ImageUrl string `json:"image_link"`
 }
 
-///MILK REQUESTS MILK REQUESTS MILK REQUESTS MILK REQUESTS MILK REQUESTS MILK REQUESTS MILK REQUESTS MILK REQUESTS MILK REQUESTS///
-
 type GetAllMovesWithParamsRequest struct {
 	HavingStatus bool      `json:"is_status"`
 	Status       int       `json:"status"`

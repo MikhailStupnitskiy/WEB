@@ -19,17 +19,26 @@ func (a *Application) GetAllCards(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	cards_cnt := len(cards)
+
 	curr_move, err := a.repo.GetCurrMove()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	var id int
+	var cards_cnt int
 	if len(curr_move) == 0 {
 		id = 0
+		cards_cnt = 0
 	} else {
 		id = curr_move[0].ID
+		curr_cards := []int{}
+		curr_cards, err = a.repo.GetCardsIDsByMoveID(id)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		cards_cnt = len(curr_cards)
 	}
 	response := schemas.GetAllCardsResponse{ID: id, Count: cards_cnt, Cards: cards}
 	c.JSON(http.StatusOK, response)
@@ -62,7 +71,7 @@ func (a *Application) CreateCard(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, "Meal was created")
+	c.JSON(http.StatusCreated, "Card was created")
 }
 
 func (a *Application) DeleteCard(c *gin.Context) {
@@ -96,7 +105,7 @@ func (a *Application) UpdateCard(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, "Meal was updated")
+	c.JSON(http.StatusOK, "Card was updated")
 }
 
 func (a *Application) AddCardToMove(c *gin.Context) {
@@ -140,5 +149,5 @@ func (a *Application) ChangePic(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, "Meal Pic was updated")
+	c.JSON(http.StatusOK, "Card Pic was updated")
 }
