@@ -3,16 +3,22 @@ package repository
 import (
 	"Evolution/internal/app/ds"
 	"Evolution/internal/app/schemas"
+	"Evolution/internal/token"
+	"errors"
 	"fmt"
+	"github.com/go-redis/redis"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log"
-	"math/rand"
+	"math/rand/v2"
+	"os"
+	"strconv"
 	"time"
 )
 
 type Repository struct {
 	db *gorm.DB
+	rc *redis.Client
 }
 
 func New(dsn string) (*Repository, error) {
@@ -20,8 +26,21 @@ func New(dsn string) (*Repository, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     os.Getenv("REDIS_ENDPOINT"),
+		Password: os.Getenv("REDIS_PASSWORD"),
+		DB:       0,
+	})
+
+	err = redisClient.Ping().Err()
+	if err != nil {
+		return nil, err
+	}
+
 	return &Repository{
 		db: db,
+		rc: redisClient,
 	}, nil
 }
 
@@ -309,7 +328,7 @@ func (r *Repository) FinishMove(id string, status int) error {
 	}
 	mod_id := 2
 	move.Status = status
-	move.Cube = rand.Intn(12) + 1
+	move.Cube = rand.IntN(12) + 1
 	move.DateFinish = time.Now()
 	move.ModeratorID = &mod_id
 	if err := r.db.Save(&move).Error; err != nil {
@@ -320,6 +339,72 @@ func (r *Repository) FinishMove(id string, status int) error {
 
 func (r *Repository) CreateUser(user ds.Users) error {
 	if err := r.db.Create(&user).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *Repository) RegisterUser(user ds.Users) (error, int) {
+	err := r.db.First(&user, "login = ?", user.Login).Error
+	if err == nil {
+		return err, 0 //пользователь с таким логином уже есть
+	}
+	if err = r.db.Create(&user).Error; err != nil {
+		return err, 1 //пользователь создан
+	}
+	return nil, 2 // произошла ошибка с создание пользователя
+}
+
+func (r *Repository) LoginUser(user ds.Users) (error, string) {
+	var db_user ds.Users
+	err := r.db.First(&db_user, "login = ?", user.Login).Error
+	if err != nil {
+		return errors.New("Пользователь не существует"), ""
+	}
+	if user.Password != db_user.Password {
+		return errors.New("Неверный пароль"), ""
+	}
+
+	currToken, err := token.GenerateJWTToken(db_user)
+	if err != nil {
+		return err, ""
+	}
+	err = r.SaveJWTToken(db_user.ID, currToken)
+	if err != nil {
+		return err, ""
+	}
+	return nil, currToken
+}
+
+func (r *Repository) SaveJWTToken(userID int, token string) error {
+	exp := 1 * time.Hour
+	userID_str := strconv.Itoa(userID)
+	err := r.rc.Set(userID_str, token, exp).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *Repository) CheckActive(key string) (string, error) {
+	result, err := r.rc.Get(key).Result()
+	if err != nil {
+		return "revoked", err
+	}
+	return result, err
+}
+
+func (r *Repository) LogoutUser(login string) error {
+	var userInDB ds.Users
+	err := r.db.First(&userInDB, "login = ?", login).Error
+	if err != nil {
+		return errors.New("Пользователь не существует")
+	}
+
+	userIDStr := strconv.Itoa(userInDB.ID)
+	exp := 24 * time.Hour
+	err = r.rc.Set(userIDStr, "revoked", exp).Err()
+	if err != nil {
 		return err
 	}
 	return nil

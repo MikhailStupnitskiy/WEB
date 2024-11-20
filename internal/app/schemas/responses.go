@@ -19,11 +19,26 @@ type GetCardResponse struct {
 	Card ds.Cards `json:"card"`
 }
 
-type CreateCardResponse struct{}
+type CreateCardResponse struct {
+	ID              int
+	MessageResponse string
+}
 
-type DeleteCardResponse struct{}
+type DeleteCardResponse struct {
+	ID              int
+	MessageResponse string
+}
 
-///MILK REQUESTS MILK REQUESTS MILK REQUESTS MILK REQUESTS MILK REQUESTS MILK REQUESTS MILK REQUESTS MILK REQUESTS MILK REQUESTS///
+type UpdateCardResponse struct {
+	ID              int
+	MessageResponse string
+}
+
+type AddCardToMoveResponse struct {
+	CardID          int
+	MoveID          int
+	MessageResponse string
+}
 
 type GetAllMovesWithParamsResponse struct {
 	Moves []ds.Moves
@@ -40,4 +55,7 @@ type GetMoveResponse struct {
 
 type DeleteCardFromMoveResponse struct{}
 
-type UpdateOrderMilkReqMealsResponse struct{}
+type UpdateOrderMoveCardsResponse struct{}
+
+type ResponseMessage struct {
+}

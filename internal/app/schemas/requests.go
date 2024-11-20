@@ -83,3 +83,17 @@ type UpdateFoodMoveCardRequest struct {
 type CreateUserRequest struct {
 	ds.Users
 }
+
+type RegisterUserRequest struct {
+	Login    string `json:"login"`
+	Password string `json:"password"`
+}
+
+type LoginUserRequest struct {
+	Login    string `json:"login"`
+	Password string `json:"password"`
+}
+
+type LogoutUserRequest struct {
+	Login string `json:"login"`
+}

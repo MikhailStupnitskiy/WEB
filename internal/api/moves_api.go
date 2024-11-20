@@ -9,6 +9,18 @@ import (
 	"time"
 )
 
+// @Summary Получить все заявки на ходы с параметрами
+// @Description Получить список ходов с возможностью фильтрации по статусу и датам
+// @Tags moves
+// @Accept json
+// @Produce json
+// @Param status query string false "Статус хода"
+// @Param is_status query string false "Наличие статуса"
+// @Success 200 {object} schemas.GetAllMovesWithParamsResponse
+// @Failure 400 {object} schemas.ResponseMessage
+// @Failure 500 {object} schemas.ResponseMessage
+// @Router /api/move [get]
+// @Security BearerAuth
 func (a *Application) GetAllMovesWithParams(c *gin.Context) {
 	var request schemas.GetAllMovesWithParamsRequest
 	if err := c.ShouldBindJSON(&request); err != nil {

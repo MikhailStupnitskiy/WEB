@@ -1,0 +1,606 @@
+definitions:
+  ds.Cards:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      image_url:
+        type: string
+      long_description:
+        type: string
+      multiplier:
+        type: string
+      status:
+        type: boolean
+      title_en:
+        type: string
+      title_ru:
+        type: string
+    type: object
+  ds.Moves:
+    properties:
+      creator:
+        $ref: '#/definitions/ds.Users'
+      creator_id:
+        type: integer
+      cube:
+        type: integer
+      date_create:
+        type: string
+      date_finish:
+        type: string
+      date_update:
+        type: string
+      id:
+        type: integer
+      moderator:
+        $ref: '#/definitions/ds.Users'
+      moderator_id:
+        type: integer
+      player:
+        type: string
+      stage:
+        type: string
+      status:
+        type: integer
+    type: object
+  ds.Users:
+    properties:
+      id:
+        type: integer
+      is_moderator:
+        type: boolean
+      login:
+        type: string
+      password:
+        type: string
+    type: object
+  schemas.AddCardToMoveResponse:
+    properties:
+      cardID:
+        type: integer
+      messageResponse:
+        type: string
+      moveID:
+        type: integer
+    type: object
+  schemas.CreateCardRequest:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      image_url:
+        type: string
+      long_description:
+        type: string
+      multiplier:
+        type: string
+      status:
+        type: boolean
+      title_en:
+        type: string
+      title_ru:
+        type: string
+    type: object
+  schemas.CreateCardResponse:
+    properties:
+      id:
+        type: integer
+      messageResponse:
+        type: string
+    type: object
+  schemas.DeleteCardFromMoveRequest:
+    properties:
+      card_id:
+        type: integer
+      id:
+        type: string
+    type: object
+  schemas.DeleteCardResponse:
+    properties:
+      id:
+        type: integer
+      messageResponse:
+        type: string
+    type: object
+  schemas.GetAllCardsResponse:
+    properties:
+      cards:
+        items:
+          $ref: '#/definitions/ds.Cards'
+        type: array
+      count:
+        type: integer
+      move_ID:
+        type: integer
+    type: object
+  schemas.GetAllMovesWithParamsResponse:
+    properties:
+      moves:
+        items:
+          $ref: '#/definitions/ds.Moves'
+        type: array
+    type: object
+  schemas.GetCardResponse:
+    properties:
+      card:
+        $ref: '#/definitions/ds.Cards'
+    type: object
+  schemas.LoginUserRequest:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    type: object
+  schemas.LogoutUserRequest:
+    properties:
+      login:
+        type: string
+    type: object
+  schemas.RegisterUserRequest:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    type: object
+  schemas.ResponseMessage:
+    type: object
+  schemas.UpdateCardRequest:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      image_url:
+        type: string
+      long_description:
+        type: string
+      multiplier:
+        type: string
+      status:
+        type: boolean
+      title_en:
+        type: string
+      title_ru:
+        type: string
+    type: object
+  schemas.UpdateCardResponse:
+    properties:
+      id:
+        type: integer
+      messageResponse:
+        type: string
+    type: object
+  schemas.UpdateFoodMoveCardRequest:
+    properties:
+      card_id:
+        type: integer
+      food:
+        type: integer
+      id:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/card:
+    post:
+      consumes:
+      - application/json
+      description: Создать карту со свойствами
+      parameters:
+      - description: Card data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.CreateCardRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/schemas.CreateCardResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+      security:
+      - BearerAuth: []
+      summary: Создать карту
+      tags:
+      - cards
+  /api/card/{ID}:
+    delete:
+      consumes:
+      - application/json
+      description: Удаляет карту по ее ID
+      parameters:
+      - description: Card ID
+        in: path
+        name: ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.DeleteCardResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+      security:
+      - BearerAuth: []
+      summary: Удалить карту по ID
+      tags:
+      - cards
+    get:
+      consumes:
+      - application/json
+      description: Получить информацию о карте по ее ID
+      parameters:
+      - description: Card ID
+        in: path
+        name: ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.GetCardResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+      security:
+      - BearerAuth: []
+      summary: Получить карту по ID
+      tags:
+      - cards
+    put:
+      consumes:
+      - application/json
+      description: Обновить карту по ее ID с параметрами
+      parameters:
+      - description: Card ID
+        in: path
+        name: ID
+        required: true
+        type: string
+      - description: Update card data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.UpdateCardRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.UpdateCardResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+      security:
+      - BearerAuth: []
+      summary: Обновить карту по ID
+      tags:
+      - cards
+  /api/card/change_pic/{ID}:
+    post:
+      consumes:
+      - application/json
+      description: Поменять картинку используя ее ID
+      parameters:
+      - description: Card ID
+        in: path
+        name: ID
+        required: true
+        type: string
+      - description: File
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Picture was changed sucessfully
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+      security:
+      - BearerAuth: []
+      summary: Поменять картинку по ID
+      tags:
+      - cards
+  /api/card_to_move/{ID}:
+    post:
+      consumes:
+      - application/json
+      description: Этот эндпойнт позволяет добавить карту в ход по ее ID
+      parameters:
+      - description: Card ID
+        in: path
+        name: ID
+        required: true
+        type: string
+      - in: query
+        name: id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Card added successfully
+          schema:
+            $ref: '#/definitions/schemas.AddCardToMoveResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+      security:
+      - BearerAuth: []
+      summary: Добавить карту в ход
+      tags:
+      - cards
+  /api/cards:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список всех карт.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of cards retrieved successfully
+          schema:
+            $ref: '#/definitions/schemas.GetAllCardsResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+      security:
+      - BearerAuth: []
+      summary: Получить все карты
+      tags:
+      - cards
+  /api/login_user:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user and returns a JWT token.
+      parameters:
+      - description: User login data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.LoginUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User logged in successfully
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+      summary: Login a user
+      tags:
+      - users
+  /api/logout:
+    post:
+      consumes:
+      - application/json
+      description: Log out the user by blacklisting the token
+      parameters:
+      - description: User login data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.LogoutUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User logged out successfully
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+        "401":
+          description: Missing token
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+      summary: Logout
+      tags:
+      - users
+  /api/move:
+    get:
+      consumes:
+      - application/json
+      description: Получить список ходов с возможностью фильтрации по статусу и датам
+      parameters:
+      - description: Статус хода
+        in: query
+        name: status
+        type: string
+      - description: Наличие статуса
+        in: query
+        name: is_status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.GetAllMovesWithParamsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+      security:
+      - BearerAuth: []
+      summary: Получить все заявки на ходы с параметрами
+      tags:
+      - moves
+  /api/move_cards/{ID}:
+    delete:
+      consumes:
+      - application/json
+      description: Удаляет карту из запроса на ход по ID запроса и CardID
+      parameters:
+      - description: ID заявки
+        in: path
+        name: ID
+        required: true
+        type: string
+      - description: Delete card from move
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.DeleteCardFromMoveRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Card was deleted from move
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+      security:
+      - BearerAuth: []
+      summary: Удалить карту из запроса на ход
+      tags:
+      - moves_cards
+    put:
+      consumes:
+      - application/json
+      description: Обновляет количество корма для карты в заявке
+      parameters:
+      - description: Move ID
+        in: path
+        name: ID
+        required: true
+        type: string
+      - description: Update amount of food in move
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.UpdateFoodMoveCardRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Food was updated
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+      summary: Обновить количество корма для карты в ходе
+      tags:
+      - moves_cards
+  /api/register_user:
+    post:
+      consumes:
+      - application/json
+      description: Registers a new user.
+      parameters:
+      - description: User registration data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.RegisterUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User registered successfully
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+        "409":
+          description: User with this login already exists
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+      summary: Register a new user
+      tags:
+      - users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -8,6 +8,16 @@ import (
 	"strconv"
 )
 
+// @Summary Получить все карты
+// @Description Возвращает список всех карт.
+// @Tags cards
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} schemas.GetAllCardsResponse "List of cards retrieved successfully"
+// @Failure 400 {object} schemas.ResponseMessage "Invalid request body"
+// @Failure 500 {object} schemas.ResponseMessage "Internal server error"
+// @Router /api/cards [get]
 func (a *Application) GetAllCards(c *gin.Context) {
 	var request schemas.GetAllCardsRequest
 	if err := c.ShouldBindQuery(&request); err != nil {
@@ -44,6 +54,17 @@ func (a *Application) GetAllCards(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+// @Summary Получить карту по ID
+// @Description Получить информацию о карте по ее ID
+// @Tags cards
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param ID path string true "Card ID"
+// @Success 200 {object} schemas.GetCardResponse
+// @Failure 400 {object} schemas.ResponseMessage "Invalid request body"
+// @Failure 500 {object} schemas.ResponseMessage "Internal server error"
+// @Router /api/card/{ID} [get]
 func (a *Application) GetCard(c *gin.Context) {
 	var request schemas.GetCardRequest
 	request.ID = c.Param("ID")
@@ -60,6 +81,17 @@ func (a *Application) GetCard(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+// @Summary Создать карту
+// @Description Создать карту со свойствами
+// @Tags cards
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body schemas.CreateCardRequest true "Card data"
+// @Success 201 {object} schemas.CreateCardResponse
+// @Failure 400 {object} schemas.ResponseMessage "Invalid request body"
+// @Failure 500 {object} schemas.ResponseMessage "Internal server error"
+// @Router /api/card [post]
 func (a *Application) CreateCard(c *gin.Context) {
 	var request schemas.CreateCardRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -74,6 +106,17 @@ func (a *Application) CreateCard(c *gin.Context) {
 	c.JSON(http.StatusCreated, "Card was created")
 }
 
+// @Summary Удалить карту по ID
+// @Description Удаляет карту по ее ID
+// @Tags cards
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param ID path string true "Card ID"
+// @Success 200 {object} schemas.DeleteCardResponse
+// @Failure 400 {object} schemas.ResponseMessage "Invalid request body"
+// @Failure 500 {object} schemas.ResponseMessage "Internal server error"
+// @Router /api/card/{ID} [delete]
 func (a *Application) DeleteCard(c *gin.Context) {
 	var request schemas.GetCardRequest
 	request.ID = c.Param("ID")
@@ -89,6 +132,18 @@ func (a *Application) DeleteCard(c *gin.Context) {
 	c.JSON(http.StatusOK, "Card was deleted")
 }
 
+// @Summary Обновить карту по ID
+// @Description Обновить карту по ее ID с параметрами
+// @Tags cards
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param ID path string true "Card ID"
+// @Param body body schemas.UpdateCardRequest true "Update card data"
+// @Success 200 {object} schemas.UpdateCardResponse
+// @Failure 400 {object} schemas.ResponseMessage "Invalid request body"
+// @Failure 500 {object} schemas.ResponseMessage "Internal server error"
+// @Router /api/card/{ID} [put]
 func (a *Application) UpdateCard(c *gin.Context) {
 	var request schemas.UpdateCardRequest
 	request.ID = c.Param("ID")
@@ -108,6 +163,18 @@ func (a *Application) UpdateCard(c *gin.Context) {
 	c.JSON(http.StatusOK, "Card was updated")
 }
 
+// @Summary Добавить карту в ход
+// @Description Этот эндпойнт позволяет добавить карту в ход по ее ID
+// @Tags cards
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param ID path string true "Card ID"
+// @Param request query schemas.AddCardToMoveRequest true "AddCardToMoveRequest"
+// @Success 200 {object} schemas.AddCardToMoveResponse "Card added successfully"
+// @Failure 400 {object} schemas.ResponseMessage "Bad Request"
+// @Failure 500 {object} schemas.ResponseMessage "Internal Server Error"
+// @Router /api/card_to_move/{ID} [post]
 func (a *Application) AddCardToMove(c *gin.Context) {
 	var request schemas.AddCardToMoveRequest
 	request.ID = c.Param("ID")
@@ -136,6 +203,16 @@ func (a *Application) AddCardToMove(c *gin.Context) {
 	c.JSON(http.StatusOK, "Card was added")
 }
 
+// @Summary Поменять картинку по ID
+// @Description Поменять картинку используя ее ID
+// @Tags cards
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param ID path string true "Card ID"
+// @Param image formData file true "File"
+// @Success 200 {object} schemas.ResponseMessage "Picture was changed sucessfully"
+// @Router /api/card/change_pic/{ID} [post]
 func (a *Application) ChangePic(c *gin.Context) {
 	var request schemas.ChangePicRequest
 	request.ID = c.Param("ID")
