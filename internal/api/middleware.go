@@ -92,3 +92,17 @@ func (a *Application) tokenActive(userID float64, token string) bool {
 	}
 	return true
 }
+
+func (a *Application) OptionalAuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Попробуйте получить токен из заголовка Authorization
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			// Если заголовок отсутствует, пропускаем запрос дальше
+			c.Next()
+			return
+		}
+		roleMiddleware := a.RoleMiddleware(ds.Users{IsModerator: false}, ds.Users{IsModerator: true})
+		roleMiddleware(c)
+	}
+}

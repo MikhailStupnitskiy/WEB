@@ -477,6 +477,14 @@ paths:
         in: query
         name: is_status
         type: string
+      - description: Дата от
+        in: query
+        name: from_date
+        type: string
+      - description: Дата до
+        in: query
+        name: to_date
+        type: string
       produces:
       - application/json
       responses:

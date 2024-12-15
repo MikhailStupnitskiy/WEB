@@ -30,7 +30,16 @@ func (a *Application) GetAllCards(c *gin.Context) {
 		return
 	}
 
-	curr_move, err := a.repo.GetCurrMove()
+	userID, exists := c.Get("userID")
+	if exists {
+		isModerator := c.MustGet("isModerator").(bool)
+		if isModerator {
+			userID = -1.0
+		}
+	} else {
+		userID = -2.0
+	}
+	curr_move, err := a.repo.GetCurrMove(userID.(float64))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -56,6 +65,33 @@ func (a *Application) GetAllCards(c *gin.Context) {
 
 // @Summary Получить карту по ID
 // @Description Получить информацию о карте по ее ID
+// @Tags cards
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param ID path string true "Name"
+// @Success 200 {object} schemas.GetCardResponse
+// @Failure 400 {object} schemas.ResponseMessage "Invalid request body"
+// @Failure 500 {object} schemas.ResponseMessage "Internal server error"
+// @Router /api/card/{ID} [get]
+func (a *Application) GetCardByName(c *gin.Context) {
+	var request schemas.GetCardByNameRequest
+	request.Name = c.Param("name")
+	if err := c.ShouldBindQuery(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	cards, err := a.repo.GetCardByInfo(request.Name)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	response := schemas.GetCardByNameResponse{Cards: cards}
+	c.JSON(http.StatusOK, response)
+}
+
+// @Summary Получить карту по названию
+// @Description Получить информацию о карте по ее названию
 // @Tags cards
 // @Accept json
 // @Produce json

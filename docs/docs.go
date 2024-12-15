@@ -478,6 +478,18 @@ const docTemplate = `{
                         "description": "Наличие статуса",
                         "name": "is_status",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Дата от",
+                        "name": "from_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Дата до",
+                        "name": "to_date",
+                        "in": "query"
                     }
                 ],
                 "responses": {

@@ -34,8 +34,9 @@ func (a *Application) Run() {
 
 	r := gin.Default()
 
-	r.GET("/api/cards", a.GetAllCards)
+	r.GET("/api/cards", a.OptionalAuthMiddleware(), a.GetAllCards)
 	r.GET("/api/card/:ID", a.GetCard)
+	r.GET("/api/card_by_name/:name", a.GetCardByName)
 
 	r.POST("/api/card", a.RoleMiddleware(ds.Users{IsModerator: true}), a.CreateCard)
 	r.DELETE("/api/card/:ID", a.RoleMiddleware(ds.Users{IsModerator: true}), a.DeleteCard)

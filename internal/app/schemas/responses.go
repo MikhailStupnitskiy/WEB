@@ -19,6 +19,10 @@ type GetCardResponse struct {
 	Card ds.Cards `json:"card"`
 }
 
+type GetCardByNameResponse struct {
+	Cards []ds.Cards `json:"cards"`
+}
+
 type CreateCardResponse struct {
 	ID              int
 	MessageResponse string

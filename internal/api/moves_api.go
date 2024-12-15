@@ -16,12 +16,20 @@ import (
 // @Produce json
 // @Param status query string false "Статус хода"
 // @Param is_status query string false "Наличие статуса"
+// @Param from_date query string false "Дата от"
+// @Param to_date query string false "Дата до"
 // @Success 200 {object} schemas.GetAllMovesWithParamsResponse
 // @Failure 400 {object} schemas.ResponseMessage
 // @Failure 500 {object} schemas.ResponseMessage
 // @Router /api/move [get]
 // @Security BearerAuth
 func (a *Application) GetAllMovesWithParams(c *gin.Context) {
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authorized"})
+		return
+	}
+	isModerator := c.MustGet("isModerator").(bool)
 	var request schemas.GetAllMovesWithParamsRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -37,7 +45,10 @@ func (a *Application) GetAllMovesWithParams(c *gin.Context) {
 		c.JSON(http.StatusNotFound, "Moves deleted")
 		return
 	}
-	moves, err := a.repo.GetAllMovesWithFilters(request.Status, request.HavingStatus)
+	if isModerator {
+		userID = -1
+	}
+	moves, err := a.repo.GetAllMovesWithFilters(request.Status, request.HavingStatus, userID.(float64))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

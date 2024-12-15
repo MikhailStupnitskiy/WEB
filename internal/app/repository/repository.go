@@ -54,9 +54,12 @@ func (r *Repository) GetAllCards() ([]ds.Cards, error) {
 	return cards, nil
 }
 
-func (r *Repository) GetCurrMove() ([]ds.Moves, error) {
+func (r *Repository) GetCurrMove(userID float64) ([]ds.Moves, error) {
 	var currmove []ds.Moves
-	err := r.db.Where("status=0").Find(&currmove).Error
+	err := r.db.Where("status=0 and creator_id = ?", userID).Find(&currmove).Error
+	if userID == -1 {
+		err = r.db.Where("status=0").Find(&currmove).Error
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +68,7 @@ func (r *Repository) GetCurrMove() ([]ds.Moves, error) {
 
 func (r *Repository) GetCardByInfo(cardText string) ([]ds.Cards, error) {
 	var cards []ds.Cards
-	err := r.db.Where("title_ru LIKE ?", "%"+cardText+"%").First(&cards).Error
+	err := r.db.Where("title_ru LIKE ?", "%"+cardText+"%").Find(&cards).Error
 	if err != nil {
 		return nil, err
 	}
@@ -260,12 +263,16 @@ func (r *Repository) UpdateFoodMoveCard(id string, card_id int, food int) error 
 	return nil
 }
 
-func (r *Repository) GetAllMovesWithFilters(status int, having_status bool) ([]ds.Moves, error) {
+func (r *Repository) GetAllMovesWithFilters(status int, having_status bool, userID float64) ([]ds.Moves, error) {
 	var moves []ds.Moves
 	log.Println(status, having_status)
-	db := r.db // Инициализируем db без фильтра по дате
+	db := r.db // Инициализируем db без фильтра по датe
 	if having_status {
-		db = db.Where("Status = ?", status) // Фильтр по статусу
+		if userID == -1 {
+			db = db.Where("Status = ?", status) // Фильтр по статусу
+		} else {
+			db = db.Where("Status = ? and creator_id = ?", status, userID) // Фильтр по статусу и создателю
+		}
 	}
 	err := db.Find(&moves).Error // Выборка записей из базы данных
 	if err != nil {

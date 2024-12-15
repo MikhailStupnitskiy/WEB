@@ -11,6 +11,10 @@ type GetCardRequest struct {
 	ID string
 }
 
+type GetCardByNameRequest struct {
+	Name string
+}
+
 type CreateCardRequest struct {
 	ds.Cards
 }
