@@ -31,12 +31,7 @@ func (a *Application) GetAllCards(c *gin.Context) {
 	}
 
 	userID, exists := c.Get("userID")
-	if exists {
-		isModerator := c.MustGet("isModerator").(bool)
-		if isModerator {
-			userID = -1.0
-		}
-	} else {
+	if !exists {
 		userID = -2.0
 	}
 	curr_move, err := a.repo.GetCurrMove(userID.(float64))
@@ -218,19 +213,32 @@ func (a *Application) AddCardToMove(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	new_move, err := a.repo.CreateMove()
+
+	userID, _ := c.Get("userID")
+	currMove, err1 := a.repo.GetCurrMove(userID.(float64))
+	if err1 != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err1.Error()})
+		return
+	}
+
+	var newMoveId int
+	if len(currMove) == 0 || currMove[0].ID == 0 {
+		newMove, err := a.repo.CreateMove(userID.(float64))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		newMoveId = newMove.ID
+	} else {
+		newMoveId = currMove[0].ID
+	}
+	cardId, err := strconv.Atoi(request.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	new_move_id := new_move.ID
-	card_id, err := strconv.Atoi(request.ID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	log.Println(new_move_id)
-	err = a.repo.AddToMove(new_move_id, card_id)
+	log.Println(newMoveId)
+	err = a.repo.AddToMove(newMoveId, cardId)
 	log.Println(err)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

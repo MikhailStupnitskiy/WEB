@@ -65,6 +65,13 @@ definitions:
       moveID:
         type: integer
     type: object
+  schemas.ChangePassword:
+    properties:
+      new_password:
+        type: string
+      old_password:
+        type: string
+    type: object
   schemas.CreateCardRequest:
     properties:
       description:
@@ -127,6 +134,23 @@ definitions:
     properties:
       card:
         $ref: '#/definitions/ds.Cards'
+    type: object
+  schemas.GetMoveResponse:
+    properties:
+      move_cards:
+        items:
+          $ref: '#/definitions/schemas.InfoForMove'
+        type: array
+      moves:
+        additionalProperties: true
+        type: object
+    type: object
+  schemas.InfoForMove:
+    properties:
+      card:
+        $ref: '#/definitions/ds.Cards'
+      food:
+        type: integer
     type: object
   schemas.LoginUserRequest:
     properties:
@@ -253,7 +277,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Получить информацию о карте по ее ID
+      description: Получить информацию о карте по ее названию
       parameters:
       - description: Card ID
         in: path
@@ -277,7 +301,7 @@ paths:
             $ref: '#/definitions/schemas.ResponseMessage'
       security:
       - BearerAuth: []
-      summary: Получить карту по ID
+      summary: Получить карту по названию
       tags:
       - cards
     put:
@@ -403,6 +427,38 @@ paths:
       summary: Получить все карты
       tags:
       - cards
+  /api/change_user_info:
+    put:
+      consumes:
+      - application/json
+      description: Change the password of the authenticated user
+      parameters:
+      - description: Password change data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.ChangePassword'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password changed successfully
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+      security:
+      - BearerAuth: []
+      summary: Change user password
+      tags:
+      - users
   /api/login_user:
     post:
       consumes:
@@ -478,10 +534,12 @@ paths:
         name: is_status
         type: string
       - description: Дата от
+        format: date
         in: query
         name: from_date
         type: string
       - description: Дата до
+        format: date
         in: query
         name: to_date
         type: string
@@ -503,6 +561,182 @@ paths:
       security:
       - BearerAuth: []
       summary: Получить все заявки на ходы с параметрами
+      tags:
+      - moves
+  /api/move/{ID}:
+    delete:
+      consumes:
+      - application/json
+      description: Удалить заявку на ход по ID
+      parameters:
+      - description: ID хода
+        in: path
+        name: ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Move was deleted
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+      security:
+      - BearerAuth: []
+      summary: Удалить ход
+      tags:
+      - moves
+    get:
+      consumes:
+      - application/json
+      description: Получить детализированную информацию о ходе, включая карты, участвующие
+        в ходе, и их статус
+      parameters:
+      - description: ID хода
+        in: path
+        name: ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.GetMoveResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+      security:
+      - BearerAuth: []
+      summary: Получить заявку на ход по ID
+      tags:
+      - moves
+    put:
+      consumes:
+      - application/json
+      description: Обновить информацию о ходе, включая поля игрока и этапа
+      parameters:
+      - description: ID хода
+        in: path
+        name: ID
+        required: true
+        type: string
+      - description: Имя игрока
+        in: body
+        name: player
+        required: true
+        schema:
+          type: string
+      - description: Этап хода
+        in: body
+        name: stage
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Fields was updated
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+      security:
+      - BearerAuth: []
+      summary: Обновить поля хода
+      tags:
+      - moves
+  /api/move/finish/{ID}:
+    put:
+      consumes:
+      - application/json
+      description: Завершить ход по его ID, обновив его статус
+      parameters:
+      - description: ID хода
+        in: path
+        name: ID
+        required: true
+        type: string
+      - description: Статус завершенного хода
+        in: body
+        name: status
+        required: true
+        schema:
+          type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Move was Finished
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+      security:
+      - BearerAuth: []
+      summary: Завершить ход
+      tags:
+      - moves
+  /api/move/form/{ID}:
+    put:
+      consumes:
+      - application/json
+      description: Сформировать ход по его ID
+      parameters:
+      - description: ID хода
+        in: path
+        name: ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Move was Formed
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.ResponseMessage'
+      security:
+      - BearerAuth: []
+      summary: Сформировать ход
       tags:
       - moves
   /api/move_cards/{ID}:
@@ -569,6 +803,8 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/schemas.ResponseMessage'
+      security:
+      - BearerAuth: []
       summary: Обновить количество корма для карты в ходе
       tags:
       - moves_cards

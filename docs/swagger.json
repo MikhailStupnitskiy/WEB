@@ -106,7 +106,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Получить информацию о карте по ее ID",
+                "description": "Получить информацию о карте по ее названию",
                 "consumes": [
                     "application/json"
                 ],
@@ -116,7 +116,7 @@
                 "tags": [
                     "cards"
                 ],
-                "summary": "Получить карту по ID",
+                "summary": "Получить карту по названию",
                 "parameters": [
                     {
                         "type": "string",
@@ -345,6 +345,57 @@
                 }
             }
         },
+        "/api/change_user_info": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Change the password of the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Change user password",
+                "parameters": [
+                    {
+                        "description": "Password change data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ChangePassword"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Password changed successfully",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ResponseMessage"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ResponseMessage"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ResponseMessage"
+                        }
+                    }
+                }
+            }
+        },
         "/api/login_user": {
             "post": {
                 "description": "Authenticates a user and returns a JWT token.",
@@ -470,12 +521,14 @@
                     },
                     {
                         "type": "string",
+                        "format": "date",
                         "description": "Дата от",
                         "name": "from_date",
                         "in": "query"
                     },
                     {
                         "type": "string",
+                        "format": "date",
                         "description": "Дата до",
                         "name": "to_date",
                         "in": "query"
@@ -503,8 +556,287 @@
                 }
             }
         },
+        "/api/move/finish/{ID}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Завершить ход по его ID, обновив его статус",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "moves"
+                ],
+                "summary": "Завершить ход",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID хода",
+                        "name": "ID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Статус завершенного хода",
+                        "name": "status",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Move was Finished",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ResponseMessage"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ResponseMessage"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/move/form/{ID}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Сформировать ход по его ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "moves"
+                ],
+                "summary": "Сформировать ход",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID хода",
+                        "name": "ID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Move was Formed",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ResponseMessage"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ResponseMessage"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/move/{ID}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получить детализированную информацию о ходе, включая карты, участвующие в ходе, и их статус",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "moves"
+                ],
+                "summary": "Получить заявку на ход по ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID хода",
+                        "name": "ID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.GetMoveResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ResponseMessage"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ResponseMessage"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ResponseMessage"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Обновить информацию о ходе, включая поля игрока и этапа",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "moves"
+                ],
+                "summary": "Обновить поля хода",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID хода",
+                        "name": "ID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Имя игрока",
+                        "name": "player",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Этап хода",
+                        "name": "stage",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Fields was updated",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ResponseMessage"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ResponseMessage"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Удалить заявку на ход по ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "moves"
+                ],
+                "summary": "Удалить ход",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID хода",
+                        "name": "ID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Move was deleted",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ResponseMessage"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ResponseMessage"
+                        }
+                    }
+                }
+            }
+        },
         "/api/move_cards/{ID}": {
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Обновляет количество корма для карты в заявке",
                 "consumes": [
                     "application/json"
@@ -761,6 +1093,17 @@
                 }
             }
         },
+        "schemas.ChangePassword": {
+            "type": "object",
+            "properties": {
+                "new_password": {
+                    "type": "string"
+                },
+                "old_password": {
+                    "type": "string"
+                }
+            }
+        },
         "schemas.CreateCardRequest": {
             "type": "object",
             "properties": {
@@ -856,6 +1199,32 @@
             "properties": {
                 "card": {
                     "$ref": "#/definitions/ds.Cards"
+                }
+            }
+        },
+        "schemas.GetMoveResponse": {
+            "type": "object",
+            "properties": {
+                "move_cards": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schemas.InfoForMove"
+                    }
+                },
+                "moves": {
+                    "type": "object",
+                    "additionalProperties": true
+                }
+            }
+        },
+        "schemas.InfoForMove": {
+            "type": "object",
+            "properties": {
+                "card": {
+                    "$ref": "#/definitions/ds.Cards"
+                },
+                "food": {
+                    "type": "integer"
                 }
             }
         },

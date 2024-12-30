@@ -42,6 +42,7 @@ func (a *Application) DeleteCardFromMove(c *gin.Context) {
 // @Tags moves_cards
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param ID path string true "Move ID"
 // @Param body body schemas.UpdateFoodMoveCardRequest true "Update amount of food in move"
 // @Success 200 {string} string "Food was updated"

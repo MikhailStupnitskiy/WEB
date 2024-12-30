@@ -57,9 +57,6 @@ func (r *Repository) GetAllCards() ([]ds.Cards, error) {
 func (r *Repository) GetCurrMove(userID float64) ([]ds.Moves, error) {
 	var currmove []ds.Moves
 	err := r.db.Where("status=0 and creator_id = ?", userID).Find(&currmove).Error
-	if userID == -1 {
-		err = r.db.Where("status=0").Find(&currmove).Error
-	}
 	if err != nil {
 		return nil, err
 	}
@@ -101,8 +98,8 @@ func (r *Repository) GetFoodByCardID(moveID int, cardID int) (int, error) {
 	return CardsIDs.Food, nil
 }
 
-func (r *Repository) CreateMove() (ds.Moves, error) {
-	creator_id := 1
+func (r *Repository) CreateMove(userID float64) (ds.Moves, error) {
+	creator_id := int(userID)
 	newMove := ds.Moves{
 		Status:     0,
 		DateCreate: time.Now(),
@@ -263,16 +260,13 @@ func (r *Repository) UpdateFoodMoveCard(id string, card_id int, food int) error 
 	return nil
 }
 
-func (r *Repository) GetAllMovesWithFilters(status int, having_status bool, userID float64) ([]ds.Moves, error) {
+func (r *Repository) GetAllMovesWithFilters(status int, userID float64) ([]ds.Moves, error) {
 	var moves []ds.Moves
-	log.Println(status, having_status)
 	db := r.db // Инициализируем db без фильтра по датe
-	if having_status {
-		if userID == -1 {
-			db = db.Where("Status = ?", status) // Фильтр по статусу
-		} else {
-			db = db.Where("Status = ? and creator_id = ?", status, userID) // Фильтр по статусу и создателю
-		}
+	if userID == -1 {
+		db = db.Where("Status = ?", status) // Фильтр по статусу
+	} else {
+		db = db.Where("Status != ? and creator_id = ?", 3, userID) // Фильтр по статусу и создателю
 	}
 	err := db.Find(&moves).Error // Выборка записей из базы данных
 	if err != nil {
@@ -296,9 +290,7 @@ func (r *Repository) UpdateFieldsMove(request schemas.UpdateFieldsMoveRequest) e
 	if err := r.db.First(&move, "id = ?", request.ID).Error; err != nil {
 		return err
 	}
-	if request.Player != "" {
-		move.Player = request.Player
-	}
+
 	if request.Stage != "" {
 		move.Stage = request.Stage
 	}
@@ -308,7 +300,7 @@ func (r *Repository) UpdateFieldsMove(request schemas.UpdateFieldsMoveRequest) e
 	return nil // Возвращаем nil, если все прошло успешно
 }
 
-func (r *Repository) FormMove(id string) error {
+func (r *Repository) FormMove(id string, userID float64) error {
 	var move ds.Moves
 	if err := r.db.First(&move, "id = ?", id).Error; err != nil {
 		return err
@@ -318,13 +310,14 @@ func (r *Repository) FormMove(id string) error {
 		return err
 	}
 	move.Status = 1
+	move.Cube = rand.IntN(12) + 1
 	if err := r.db.Save(&move).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *Repository) FinishMove(id string, status int) error {
+func (r *Repository) FinishMove(id string, status int, userID float64) error {
 	var move ds.Moves
 	if err := r.db.First(&move, "id = ?", id).Error; err != nil {
 		return err
@@ -333,9 +326,9 @@ func (r *Repository) FinishMove(id string, status int) error {
 		err := fmt.Errorf("Unable to finish request. Probably some fields are empty")
 		return err
 	}
-	mod_id := 2
+	mod_id := int(userID)
 	move.Status = status
-	move.Cube = rand.IntN(12) + 1
+
 	move.DateFinish = time.Now()
 	move.ModeratorID = &mod_id
 	if err := r.db.Save(&move).Error; err != nil {
@@ -415,4 +408,17 @@ func (r *Repository) LogoutUser(login string) error {
 		return err
 	}
 	return nil
+}
+
+func (r *Repository) ChangePassword(request schemas.ChangePassword, userID float64) error {
+	var user ds.Users
+	if err := r.db.Where("id = ? AND password = ?", userID, request.OldPassword).First(&user).Error; err != nil {
+		return err
+	}
+	user.Password = request.NewPassword
+	if err := r.db.Save(&user).Error; err != nil {
+		return err
+	}
+	return nil
+
 }

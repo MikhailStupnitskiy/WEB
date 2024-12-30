@@ -6,7 +6,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 // @Summary Получить все заявки на ходы с параметрами
@@ -14,10 +13,10 @@ import (
 // @Tags moves
 // @Accept json
 // @Produce json
-// @Param status query string false "Статус хода"
-// @Param is_status query string false "Наличие статуса"
-// @Param from_date query string false "Дата от"
-// @Param to_date query string false "Дата до"
+// @Param status query string false "Статус хода" Enum(1,2,3)
+// @Param is_status query string false "Наличие статуса" Enum(true,false)
+// @Param from_date query string false "Дата от" format(date)
+// @Param to_date query string false "Дата до" format(date)
 // @Success 200 {object} schemas.GetAllMovesWithParamsResponse
 // @Failure 400 {object} schemas.ResponseMessage
 // @Failure 500 {object} schemas.ResponseMessage
@@ -29,26 +28,12 @@ func (a *Application) GetAllMovesWithParams(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authorized"})
 		return
 	}
-	isModerator := c.MustGet("isModerator").(bool)
 	var request schemas.GetAllMovesWithParamsRequest
-	if err := c.ShouldBindJSON(&request); err != nil {
+	if err := c.ShouldBindQuery(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if request.FromDate.IsZero() {
-		request.FromDate = time.Date(2000, time.January, 1, 0, 0, 0, 396641000, time.UTC)
-	}
-	if request.ToDate.IsZero() {
-		request.ToDate = time.Now()
-	}
-	if request.Status == 3 {
-		c.JSON(http.StatusNotFound, "Moves deleted")
-		return
-	}
-	if isModerator {
-		userID = -1
-	}
-	moves, err := a.repo.GetAllMovesWithFilters(request.Status, request.HavingStatus, userID.(float64))
+	moves, err := a.repo.GetAllMovesWithFilters(request.Status, userID.(float64))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -57,6 +42,18 @@ func (a *Application) GetAllMovesWithParams(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+// @Summary Получить заявку на ход по ID
+// @Description Получить детализированную информацию о ходе, включая карты, участвующие в ходе, и их статус
+// @Tags moves
+// @Accept json
+// @Produce json
+// @Param ID path string true "ID хода"
+// @Success 200 {object} schemas.GetMoveResponse
+// @Failure 400 {object} schemas.ResponseMessage
+// @Failure 404 {object} schemas.ResponseMessage
+// @Failure 500 {object} schemas.ResponseMessage
+// @Router /api/move/{ID} [get]
+// @Security BearerAuth
 func (a *Application) GetMove(c *gin.Context) {
 	var request schemas.GetMoveRequest
 	request.ID = c.Param("ID")
@@ -106,10 +103,23 @@ func (a *Application) GetMove(c *gin.Context) {
 		"Stage":        move.Stage,
 		"Cube":         move.Cube,
 	}
-	response := schemas.GetMoveResponse{Move: result, MoveCards: CardsInMove}
+	response := schemas.GetMoveResponse{Move: result, Status: move.Status, MoveCards: CardsInMove}
 	c.JSON(http.StatusOK, response)
 }
 
+// @Summary Обновить поля хода
+// @Description Обновить информацию о ходе, включая поля игрока и этапа
+// @Tags moves
+// @Accept json
+// @Produce json
+// @Param ID path string true "ID хода"
+// @Param player body string true "Имя игрока"
+// @Param stage body string true "Этап хода"
+// @Success 200 {string} string "Fields was updated"
+// @Failure 400 {object} schemas.ResponseMessage
+// @Failure 500 {object} schemas.ResponseMessage
+// @Router /api/move/{ID} [put]
+// @Security BearerAuth
 func (a *Application) UpdateFieldsMove(c *gin.Context) {
 	var request schemas.UpdateFieldsMoveRequest
 	request.ID = c.Param("ID")
@@ -122,6 +132,10 @@ func (a *Application) UpdateFieldsMove(c *gin.Context) {
 		return
 	}
 	err := a.repo.UpdateFieldsMove(request)
+	if request.Stage == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -129,6 +143,17 @@ func (a *Application) UpdateFieldsMove(c *gin.Context) {
 	c.JSON(http.StatusOK, "Fields was updated")
 }
 
+// @Summary Удалить ход
+// @Description Удалить заявку на ход по ID
+// @Tags moves
+// @Accept json
+// @Produce json
+// @Param ID path string true "ID хода"
+// @Success 200 {string} string "Move was deleted"
+// @Failure 400 {object} schemas.ResponseMessage
+// @Failure 500 {object} schemas.ResponseMessage
+// @Router /api/move/{ID} [delete]
+// @Security BearerAuth
 func (a *Application) DeleteMove(c *gin.Context) {
 	var request schemas.DeleteMoveRequest
 	id := c.Param("ID")
@@ -149,14 +174,30 @@ func (a *Application) DeleteMove(c *gin.Context) {
 	c.JSON(http.StatusOK, "Move was deleted")
 }
 
+// @Summary Сформировать ход
+// @Description Сформировать ход по его ID
+// @Tags moves
+// @Accept json
+// @Produce json
+// @Param ID path string true "ID хода"
+// @Success 200 {string} string "Move was Formed"
+// @Failure 400 {object} schemas.ResponseMessage
+// @Failure 500 {object} schemas.ResponseMessage
+// @Router /api/move/form/{ID} [put]
+// @Security BearerAuth
 func (a *Application) FormMove(c *gin.Context) {
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authorized"})
+		return
+	}
 	var request schemas.FormMoveRequest
 	id := c.Param("ID")
 	if err := c.ShouldBindQuery(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	err := a.repo.FormMove(id)
+	err := a.repo.FormMove(id, userID.(float64))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -164,7 +205,24 @@ func (a *Application) FormMove(c *gin.Context) {
 	c.JSON(http.StatusOK, "Move was Formed")
 }
 
+// @Summary Завершить ход
+// @Description Завершить ход по его ID, обновив его статус
+// @Tags moves
+// @Accept json
+// @Produce json
+// @Param ID path string true "ID хода"
+// @Param status body int true "Статус завершенного хода" Enum(1,2,3)
+// @Success 200 {string} string "Move was Finished"
+// @Failure 400 {object} schemas.ResponseMessage
+// @Failure 500 {object} schemas.ResponseMessage
+// @Router /api/move/finish/{ID} [put]
+// @Security BearerAuth
 func (a *Application) FinishMove(c *gin.Context) {
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authorized"})
+		return
+	}
 	var request schemas.FinishMoveRequest
 	id := c.Param("ID")
 	if err := c.ShouldBindQuery(&request); err != nil {
@@ -175,7 +233,7 @@ func (a *Application) FinishMove(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	err := a.repo.FinishMove(id, request.Status)
+	err := a.repo.FinishMove(id, request.Status, userID.(float64))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

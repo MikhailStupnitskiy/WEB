@@ -53,7 +53,8 @@ type GetAllMovesResponse struct {
 }
 
 type GetMoveResponse struct {
-	Move      map[string]interface{} `json:"moves"`
+	Move      map[string]interface{} `json:"moves" form:"moves"`
+	Status    int                    `json:"status" form:"status"`
 	MoveCards []InfoForMove          `json:"move_cards"`
 }
 

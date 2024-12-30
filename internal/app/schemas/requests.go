@@ -2,7 +2,6 @@ package schemas
 
 import (
 	"Evolution/internal/app/ds"
-	"time"
 )
 
 type GetAllCardsRequest struct{}
@@ -38,10 +37,7 @@ type ChangePicRequest struct {
 }
 
 type GetAllMovesWithParamsRequest struct {
-	HavingStatus bool      `json:"is_status"`
-	Status       int       `json:"status"`
-	FromDate     time.Time `json:"from_date"`
-	ToDate       time.Time `json:"to_date"`
+	Status int `json:"status" form:"status"`
 }
 
 type GetMoveRequest struct {
@@ -55,9 +51,8 @@ type UpdateOrderMoveRequest struct {
 }
 
 type UpdateFieldsMoveRequest struct {
-	ID     string `uri:"move" json:"id"`
-	Player string `json:"player"`
-	Stage  string `json:"stage"`
+	ID    string `uri:"move" json:"id"`
+	Stage string `json:"stage"`
 }
 
 type DeleteMoveRequest struct {
@@ -100,4 +95,9 @@ type LoginUserRequest struct {
 
 type LogoutUserRequest struct {
 	Login string `json:"login"`
+}
+
+type ChangePassword struct {
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
 }

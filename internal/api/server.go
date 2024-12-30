@@ -48,15 +48,16 @@ func (a *Application) Run() {
 	r.GET("/api/move/:ID", a.RoleMiddleware(ds.Users{IsModerator: false}, ds.Users{IsModerator: true}), a.GetMove)
 	r.PUT("/api/move/:ID", a.RoleMiddleware(ds.Users{IsModerator: false}, ds.Users{IsModerator: true}), a.UpdateFieldsMove)
 	r.DELETE("/api/move/:ID", a.RoleMiddleware(ds.Users{IsModerator: false}, ds.Users{IsModerator: true}), a.DeleteMove)
-	r.PUT("/api/move/form/:ID", a.RoleMiddleware(ds.Users{IsModerator: true}), a.FormMove)
+	r.PUT("/api/move/form/:ID", a.RoleMiddleware(ds.Users{IsModerator: false}, ds.Users{IsModerator: true}), a.FormMove)
 	r.PUT("/api/move/finish/:ID", a.RoleMiddleware(ds.Users{IsModerator: true}), a.FinishMove)
 
-	r.DELETE("/api/move_cards/:ID", a.RoleMiddleware(ds.Users{IsModerator: true}), a.DeleteCardFromMove)
-	r.PUT("/api/move_cards/:ID", a.RoleMiddleware(ds.Users{IsModerator: true}), a.UpdateFoodMoveCard)
+	r.DELETE("/api/move_cards/:ID", a.RoleMiddleware(ds.Users{IsModerator: false}, ds.Users{IsModerator: true}), a.DeleteCardFromMove)
+	r.PUT("/api/move_cards/:ID", a.RoleMiddleware(ds.Users{IsModerator: false}, ds.Users{IsModerator: true}), a.UpdateFoodMoveCard)
 
 	r.POST("/api/register_user", a.RegisterUser)
 	r.POST("/api/login_user", a.LoginUser)
 	r.POST("/api/logout", a.LogoutUser)
+	r.PUT("/api/change_user_info", a.RoleMiddleware(ds.Users{IsModerator: true}, ds.Users{IsModerator: false}), a.ChangeUserInfo)
 
 	r.GET("/protected", a.RoleMiddleware(ds.Users{IsModerator: true}), func(c *gin.Context) {
 		userID := c.MustGet("userID").(float64)
